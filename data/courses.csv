@@ -1,0 +1,8 @@
+course_id,course_name,category,difficulty_level,duration_weeks,short_description,modules,is_active
+C001,Data Analytics Fundamentals,Analytics,Beginner,12,Data Analytics Fundamentals — hands-on analytics track at Kayfa.,"[""Spreadsheets & Tabular Data"", ""Descriptive Statistics"", ""Data Cleaning"", ""GroupBy & Aggregation"", ""Joins & Merges"", ""Data Visualization Basics""]",True
+C002,Python Programming,Programming,Beginner,14,Python Programming — hands-on programming track at Kayfa.,"[""Variables & Types"", ""Control Flow"", ""Functions"", ""Data Structures"", ""Recursion"", ""File I/O"", ""Error Handling""]",True
+C003,Web Development,Programming,Intermediate,16,Web Development — hands-on programming track at Kayfa.,"[""HTML & Semantics"", ""CSS Layout"", ""JavaScript DOM"", ""HTTP & APIs"", ""Responsive Design""]",True
+C004,UI/UX Design,Design,Beginner,10,UI/UX Design — hands-on design track at Kayfa.,"[""Design Principles"", ""Wireframing"", ""Color Theory"", ""Prototyping"", ""Usability Testing""]",True
+C005,Digital Marketing,Business,Beginner,8,Digital Marketing — hands-on business track at Kayfa.,"[""SEO Basics"", ""Content Strategy"", ""Paid Ads"", ""Funnel Analytics""]",True
+C006,Machine Learning Basics,Analytics,Advanced,16,Machine Learning Basics — hands-on analytics track at Kayfa.,"[""Regression"", ""Classification"", ""Overfitting & Regularization"", ""Feature Engineering"", ""Model Evaluation"", ""Clustering""]",True
+C007,Cybersecurity Essentials,Security,Intermediate,12,Cybersecurity Essentials — hands-on security track at Kayfa.,"[""Networking Basics"", ""Cryptography"", ""Authentication"", ""Threat Modeling"", ""Secure Coding""]",True

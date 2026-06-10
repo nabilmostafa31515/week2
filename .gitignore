@@ -1,0 +1,39 @@
+# ── Secrets / environment ────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Python ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ── Virtual environments ─────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Jupyter ──────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Streamlit ────────────────────────────────────────────
+.streamlit/secrets.toml
+
+# ── Testing / coverage ───────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.cache/
+
+# ── IDE / OS ─────────────────────────────────────────────
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

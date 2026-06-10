@@ -1,0 +1,380 @@
+C:\Users\Mostafa\Desktop\kayfa\week 2\project\src\analytics\model.py:268: FutureWarning: Downcasting object dtype arrays on .fillna, .ffill, .bfill is deprecated and will change in a future version. Call result.infer_objects(copy=False) instead. To opt-in to the future behavior, set `pd.set_option('future.no_silent_downcasting', True)`
+  summary = summary.fillna({
+C:\Users\Mostafa\Desktop\kayfa\week 2\project\src\mongodb\write_analytics.py:94: DeprecationWarning:
+
+datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+
+==================================================
+  KAYFA — Loading all data sources
+==================================================
+✅ courses.csv        → 7 rows, 8 cols
+✅ groups.csv         → 12 rows, 7 cols
+✅ students.csv       → 502 rows, 8 cols
+✅ concepts_perf.csv  → 12008 rows, 10 cols
+✅ engagement.csv     → 30866 rows, 6 cols
+✅ submissions.csv    → 1504 rows, 9 cols
+✅ grades.json → 5502 rows, 10 cols
+   Students with grades : 500
+   Assessment types     : ['quiz', 'assignment', 'practical', 'exam']
+   Score range          : -10.0 → 187.0
+   Null scores          : 2
+   📄 2025-12 → 2111 rows | status nulls: 0
+   📄 2026-01 → 2341 rows | status nulls: 0
+   📄 2026-02 → 2000 rows | status nulls: 0
+   📄 2026-03 → 2104 rows | status nulls: 0
+   📄 2026-04 → 2217 rows | status nulls: 0
+   📄 2026-05 → 2237 rows | status nulls: 0
+
+✅ attendance.xlsx → 13010 total rows, 7 cols
+   Sheets merged        : 6
+   Unique students      : 501
+   Status values        : [0, 1]
+   Status null rows     : 0
+   Date range           : 2025-12-02 16:00:00 → 2026-05-31 17:00:00
+
+==================================================
+  ✅ All 8 files loaded successfully
+==================================================
+
+Source                   Rows   Cols
+------------------------------------
+courses                     7      8
+groups                     12      7
+students                  502      8
+concepts               12,008     10
+engagement             30,866      6
+submissions             1,504      9
+grades                  5,502     10
+attendance             13,010      7
+
+=======================================================
+  KAYFA — Running full cleaning pipeline
+=======================================================
+
+── Cleaning groups.csv ──
+   ✅ Fix 7: 1 duplicate row(s) removed
+   ✅ Fix 8: 1 test group(s) flagged (G99)
+   ✅ Fix 9: session_time normalised to HH:MM 24-hour format
+   Final shape: (11, 8)
+
+── Cleaning students.csv ──
+   ✅ Fix 1: 4 null names → 'Unknown [id]'
+   ✅ Fix 2: duplicate student_ids removed
+   ✅ Fix 3: 4 impossible ages → NaN + suspect_age=True
+   ✅ Fix 4: gender normalised (10 variants → 2 canonical values)
+   ✅ Fix 5: 173 duplicate emails flagged (not dropped — email ≠ PK)
+   ✅ Fix 6: 3 students with invalid group_id → NaN + orphan_student=True
+   Final shape: (500, 11)
+
+── Cleaning grades.json ──
+   ✅ Fix 10: 1 negative score(s) → NaN
+   ✅ Fix 11: 2 score(s) > max_score → NaN
+   ✅ Fix 12: 5 null score(s) retained as NaN (unknown cause)
+   Final shape: (5502, 12)
+
+── Cleaning attendance.xlsx ──
+   ✅ Fix 13-19: all 6 sheet encodings unified → binary 0/1
+   ✅ Fix 20: 'datetime' column renamed to 'session_datetime' in 2026-02
+   Final shape: (13010, 7)
+
+── Cleaning concepts_performance.csv ──
+   ✅ Fix 21: 1 negative score_pct(s) → NaN
+   ✅ Fix 22: 1 score_pct(s) > 100 → NaN
+   ✅ Fix 23: 1762 mastery_status values recomputed from score_pct
+   Final shape: (12008, 12)
+
+── Cleaning engagement_events.csv ──
+   ✅ Fix 24: 8 duplicate event(s) removed
+   ✅ Fix 25: 1 out-of-term event(s) flagged
+   ✅ Fix 26: 2 negative duration(s) → NaN
+   Final shape: (30858, 8)
+
+── Cleaning assignment_submissions.csv ──
+   ✅ Fix 27: 1 null submitted_at retained as NaN
+   ✅ Fix 28: is_late recomputed from timestamps (3 corrections)
+   ✅ Fix 29: submission_delay_hours computed
+   ✅ Fix 30: 1 zero/negative time_spent → NaN
+   Final shape: (1504, 12)
+
+=======================================================
+  ✅ Cleaning pipeline complete
+=======================================================
+
+Source                 Raw Rows   Clean Rows
+--------------------------------------------
+courses                       7            7
+groups                       12           11  (-1)
+students                    502          500  (-2)
+grades                    5,502        5,502
+attendance               13,010       13,010
+concepts                 12,008       12,008
+engagement               30,866       30,858  (-8)
+submissions               1,504        1,504
+
+=======================================================
+  KAYFA — Building analytics model
+=======================================================
+
+── Step 1: Building core spine ──
+   students          :    500
+   spine (with joins):    500
+   orphan students   :      3
+   cols              : ['student_id', 'full_name', 'age', 'gender', 'city', 'email', 'group_id', 'enrollment_date', 'suspect_age', 'duplicate_email', 'orphan_student', 'group_name', 'course_id', 'stated_num_students', 'session_day', 'session_time', 'instructor', 'course_name', 'category', 'difficulty_level', 'duration_weeks']
+
+── Step 7: Building student summary table ──
+   Student summary shape: (500, 34)
+   Columns: ['student_id', 'full_name', 'age', 'gender', 'city', 'group_id', 'group_name', 'course_id', 'course_name', 'category', 'difficulty_level', 'instructor', 'orphan_student', 'suspect_age', 'avg_grade', 'avg_quiz', 'avg_assignment', 'avg_exam', 'avg_practical', 'total_assessments', 'attendance_rate', 'total_sessions', 'login_count', 'total_watch_hours', 'forum_posts', 'resource_downloads', 'engagement_score', 'failed_concepts', 'total_concepts', 'concept_pass_rate', 'late_submission_rate', 'avg_submission_delay', 'avg_time_spent', 'avg_attempts']
+
+── Step 8: Building group summary table ──
+   Group summary shape: (10, 13)
+
+=======================================================
+  ✅ Analytics model ready
+=======================================================
+
+Table                      Rows   Cols
+--------------------------------------
+spine                       500     21
+grades                    5,502     12
+attendance               13,010      7
+concepts                 12,008     12
+engagement               30,858      8
+submissions               1,504     12
+student_summary             500     34
+group_summary                10     13
+courses                       7      8
+groups                       11      8
+
+=======================================================
+  KAYFA — Computing all features
+=======================================================
+
+── Computing attendance features ──
+   student_att shape : (501, 5)
+   group_att shape   : (10, 5)
+   platform avg att  : 76.79%
+   groups below avg  : 2
+
+── Computing grade features ──
+   student_grades shape : (500, 8)
+   course_grades shape  : (7, 5)
+   type_dist shape      : (4, 6)
+
+── Computing engagement features ──
+   engagement shape      : (501, 7)
+   monthly_eng shape     : (6, 6)
+   avg engagement score  : 72.00
+
+── Computing concept features ──
+   concept_fail shape    : (40, 7)
+   student_concepts shape: (500, 6)
+   worst concept         : Recursion
+   worst failure rate    : 66.75%
+
+── Computing submission features ──
+   student_subs shape : (500, 6)
+   late rate overall  : 35.8%
+
+── Computing age band features ──
+   age_stats shape  : (4, 6)
+   age bands        : ['15-20', '21-25', '26-30', '31-35']
+
+── Computing at-risk scores ──
+   total students   : 500
+   at-risk students : 100
+   risk threshold   : 0.4895
+
+   Top 10 at-risk students:
+student_id     full_name  attendance_rate  avg_grade  at_risk_score
+     S0390  Mona ElSayed            61.54      41.93         0.8584
+     S0453  Marwan ElBaz            50.00      47.65         0.8443
+     S0201   Rowan ElBaz            46.15      52.76         0.8428
+     S0258   Hassan Nasr            46.15      55.21         0.8029
+     S0494 Hassan Refaat            57.69      45.38         0.7761
+     S0115  Farida Halim            53.85      48.88         0.7744
+     S0142  Habiba Halim            50.00      54.17         0.7538
+     S0424   Omar Shawky            50.00      56.10         0.7502
+     S0447   Fady Farouk            53.85      46.93         0.7412
+     S0127 Laila Mansour            57.69      52.13         0.7409
+
+── Computing group size validation ──
+   groups with discrepancy : 4
+group_id      group_name  stated_num_students  true_count  discrepancy  flag
+     G01 Group 01 — C001                   52          50            2 False
+     G02 Group 02 — C001                   56          56            0 False
+     G03 Group 03 — C002                   67          54           13  True
+     G04 Group 04 — C002                   65          65            0 False
+     G05 Group 05 — C003                   76          46           30  True
+     G06 Group 06 — C004                   56          56            0 False
+     G07 Group 07 — C005                   70          58           12  True
+     G08 Group 08 — C006                   60          60            0 False
+     G09 Group 09 — C006                   51          51            0 False
+     G10 Group 10 — C007                   31           1           30  True
+
+=======================================================
+  ✅ All features computed
+=======================================================
+
+Feature Table              Rows   Cols
+--------------------------------------
+student_att                 501      5
+group_att                    10      5
+monthly_att               3,001      3
+student_grades              500      8
+course_grades                 7      5
+type_dist                     4      6
+grade_trend                  52      3
+eng                         501      7
+monthly_eng                   6      6
+device_split                501      3
+concept_fail                 40      7
+student_concepts            500      6
+concept_trend               166      6
+student_subs                500      6
+late_summary                  2      5
+delay_dist                    4      2
+age_stats                     4      6
+risk_df                     500     15
+group_size                   10     12
+
+=======================================================
+  KAYFA — Running clustering pipeline
+=======================================================
+
+── Step 1: Preparing clustering features ──
+   Students with complete features: 500
+   Features used: ['attendance_rate', 'avg_grade', 'engagement_score', 'failed_concepts']
+
+   Feature statistics:
+       attendance_rate  avg_grade  engagement_score  failed_concepts
+count           500.00     500.00            500.00           500.00
+mean             76.79      70.50             54.89             2.22
+std              11.40       8.04             13.85             2.68
+min              42.31      41.93             17.24             0.00
+25%              69.23      65.85             45.04             0.00
+50%              76.92      71.25             54.32             1.00
+75%              84.62      75.87             63.68             3.00
+max             100.00      89.06             96.80            17.00
+
+── Step 2: Finding optimal K ──
+   k=2 | inertia=1281.5 | silhouette=0.343
+   k=3 | inertia=1000.4 | silhouette=0.265
+   k=4 | inertia=875.3 | silhouette=0.220
+   k=5 | inertia=762.8 | silhouette=0.231
+   k=6 | inertia=694.5 | silhouette=0.227
+   k=7 | inertia=640.9 | silhouette=0.209
+   k=8 | inertia=591.7 | silhouette=0.220
+
+   ✅ Best K by silhouette = 2
+
+   Using K=4 for business interpretability (silhouette best=2)
+
+── Step 3: Fitting K-Means (k=4) ──
+
+   Cluster sizes:
+   Cluster 0: 127 students
+   Cluster 1: 71 students
+   Cluster 2: 198 students
+   Cluster 3: 104 students
+
+── Step 4: Describing clusters ──
+
+   Cluster centroids:
+         attendance_rate  avg_grade  engagement_score  failed_concepts  late_submission_rate  concept_pass_rate
+cluster                                                                                                        
+0                  84.95      75.41             72.37             1.36                 17.19              94.32
+1                  68.17      57.76             45.09             7.38                 57.28              69.28
+2                  81.31      73.26             51.68             1.17                 32.83              95.14
+3                  64.12      67.96             46.32             1.77                 49.44              92.63
+
+   Segment assignment:
+
+   Cluster 0 → High Achievers (127 students)
+   High attendance, high grades, high engagement, low failed concepts. These students are on track.
+   Action: Offer advanced challenges, peer-mentoring roles, and fast-track opportunities.
+
+   Cluster 1 → Passive Learners (71 students)
+   Average attendance and grades, but low engagement. Present but not active.
+   Action: Encourage forum participation, project-based tasks, and peer learning.
+
+   Cluster 2 → High Achievers (198 students)
+   High attendance, high grades, high engagement, low failed concepts. These students are on track.
+   Action: Offer advanced challenges, peer-mentoring roles, and fast-track opportunities.
+
+   Cluster 3 → Passive Learners (104 students)
+   Average attendance and grades, but low engagement. Present but not active.
+   Action: Encourage forum participation, project-based tasks, and peer learning.
+
+── Step 5: Generating cluster visualisations ──
+   ✅ 5 cluster figures generated
+
+── Step 6: Building cluster document (for MongoDB) ──
+ cluster_id    cluster_label  student_count  avg_grade  avg_attendance  avg_engagement
+          0   High Achievers            127  75.405118       84.954803       72.369921
+          1 Passive Learners             71  57.755634       68.168873       45.094366
+          2   High Achievers            198  73.262121       81.307071       51.682828
+          3 Passive Learners            104  67.964615       64.122596       46.319423
+
+=======================================================
+  ✅ Clustering pipeline complete
+=======================================================
+
+=======================================================
+  KAYFA — Writing all analytics to MongoDB Atlas
+=======================================================
+Connecting to MongoDB Atlas...
+
+── Writing analytics_summary ──
+   ✅ analytics_summary inserted (1 doc)
+
+── Writing group_metrics ──
+   ✅ group_metrics                  upserted 10 docs (key=group_id)
+
+── Writing course_metrics ──
+   ✅ course_metrics                 upserted 7 docs (key=course_id)
+
+── Writing student_risk_scores ──
+   ✅ student_risk_scores            upserted 500 docs (key=student_id)
+
+── Writing clusters ──
+   ✅ clusters                       upserted 4 docs (key=cluster_id)
+   ✅ student_clusters               upserted 500 docs (key=student_id)
+
+── Writing concept_failures ──
+   ✅ concept_failures               upserted 40 docs (key=concept_id)
+   ✅ concept_trends                 inserted 166 docs
+
+── Writing time series ──
+   ✅ monthly_attendance             inserted 3001 docs
+   ✅ monthly_engagement             inserted 6 docs
+   ✅ grade_trends                   inserted 52 docs
+
+── Writing student_summary ──
+   ✅ student_summary                upserted 500 docs (key=student_id)
+
+── Writing supporting stats ──
+   ✅ age_stats                      inserted 4 docs
+   ✅ delay_distribution             inserted 4 docs
+   ✅ assessment_type_distribution   inserted 4 docs
+
+=======================================================
+  ✅ All data written to Atlas
+=======================================================
+
+Collection                              Docs
+---------------------------------------------
+age_stats                                  4
+analytics_summary                          1
+assessment_type_distribution               4
+clusters                                   4
+concept_failures                          34
+concept_trends                           166
+course_metrics                             7
+delay_distribution                         4
+grade_trends                              52
+group_metrics                             10
+monthly_attendance                     3,001
+monthly_engagement                         6
+student_clusters                         500
+student_risk_scores                      500
+student_summary                          500

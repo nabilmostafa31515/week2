@@ -1,0 +1,30 @@
+Issue,File,Impact,Fix,Rows Affected
+Null full_name,students.csv,Display issues,Flag as 'Unknown [id]',4
+Duplicate student_id,students.csv,"Inflated counts, wrong joins","Keep first, drop duplicate",2
+Impossible age (< 15 or > 80),students.csv,Corrupts age-band analysis,"Set to NaN, flag suspect_age=True",6
+Inconsistent gender encoding,students.csv,Wrong gender distribution,Normalise to Male/Female,8
+Duplicate email addresses,students.csv,CRM issues (not join-breaking),"Flag, do not drop",97
+"student_id references non-existent group_id (GZZ, G77)",students.csv,Breaks students→groups→courses chain,"Set group_id=NaN, flag orphan_student=True",3
+Exact duplicate row (G01),groups.csv,Inflated group count,Drop duplicate row,1
+Phantom test group G99 (TEST_GROUP_DELETE),groups.csv,Pollutes all group-level metrics,Exclude G99 from all analyses,1
+"session_time in mixed formats (6 PM, 1800, 00:00)",groups.csv,Cannot sort or compare session times,Normalise all to HH:MM 24-hour format,2
+Negative score (score = -10),grades.json,Pulls down averages,"Set to NaN, flag invalid_score=True",1
+Score > max_score (score = 187),grades.json,Inflates averages,"Set to NaN, flag invalid_score=True",1
+Null score values,grades.json,Missing data in grade analyses,"Retain as NaN, do not impute",2
+Status encoding: attended/absent/Atttended (typo),attendance.xlsx (2025-12),Cannot concatenate sheets without reconciliation,"Map all to binary 1=attended, 0=absent",2111
+Status encoding: Present/Absent,attendance.xlsx (2026-01),Cannot concatenate sheets without reconciliation,"Map all to binary 1=attended, 0=absent",2341
+Status encoding: 1/0 integers + renamed column,attendance.xlsx (2026-02),Cannot concatenate sheets without reconciliation,"Map all to binary 1=attended, 0=absent",2000
+Status encoding: P/A,attendance.xlsx (2026-03),Cannot concatenate sheets without reconciliation,"Map all to binary 1=attended, 0=absent",2104
+Status encoding: yes/no,attendance.xlsx (2026-04),Cannot concatenate sheets without reconciliation,"Map all to binary 1=attended, 0=absent",2217
+Status encoding: True/False booleans,attendance.xlsx (2026-05),Cannot concatenate sheets without reconciliation,"Map all to binary 1=attended, 0=absent",2237
+Negative score_pct (-33),concepts_performance.csv,Corrupts concept mastery analysis,"Set to NaN, flag invalid_score=True",1
+score_pct > 100 (142),concepts_performance.csv,Inflates mastery rates,"Set to NaN, flag invalid_score=True",1
+mastery_status contradicts score_pct (1761 records),concepts_performance.csv,Wrong pass/fail flags throughout,Recompute mastery_status from score_pct using threshold=50,1761
+Duplicate event_ids (8 records),engagement_events.csv,Double-counts activity,"Drop exact duplicates, keep first",8
+Event dated 2025-01-01 (before term start),engagement_events.csv,Corrupts time-series trend analysis,"Flag out_of_term=True, exclude from trends",1
+Negative duration_seconds (-120),engagement_events.csv,Corrupts watch-time totals,"Set to NaN, flag invalid_duration=True",2
+Null submitted_at (1 record),assignment_submissions.csv,Cannot compute lateness for this record,"Retain NaN, exclude from timing analyses",1
+is_late flag disagrees with actual timestamps (2 records),assignment_submissions.csv,Wrong late-submission statistics,"Recompute is_late = submitted_at > deadline, keep is_late_raw",2
+time_spent_minutes <= 0 (1 record),assignment_submissions.csv,Corrupts effort analysis,"Set to NaN, flag invalid_time=True",1
+"Students reference group_ids not in groups.csv (GZZ, G77)",students.csv × groups.csv,Breaks students→groups→courses lookup chain,"Set group_id=NaN, flag orphan_student=True",3
+Groups in groups.csv with zero students: {'G99'},groups.csv × students.csv,Phantom groups pollute group metrics,Exclude from all analyses,1
