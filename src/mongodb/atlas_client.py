@@ -5,18 +5,24 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ══════════════════════════════════════════════════════
-#  CONNECTION
-# ══════════════════════════════════════════════════════
+def _get_uri():
+    # Streamlit Cloud secrets
+    try:
+        import streamlit as st
+        if "MONGO_URI" in st.secrets:
+            return st.secrets["MONGO_URI"]
+    except Exception:
+        pass
+    # local .env fallback
+    return os.getenv("MONGO_URI")
 
 def get_client():
-    uri = os.getenv("MONGO_URI")
+    uri = _get_uri()
     if not uri:
         raise RuntimeError(
             "MONGO_URI is not set. Add it to your .env file "
-            "(see .env.example)."
+            "(local) or Streamlit Secrets (cloud)."
         )
-    # never log the URI — it contains credentials
     print("Connecting to MongoDB Atlas...")
     client = MongoClient(uri, serverSelectionTimeoutMS=5000)
     return client
